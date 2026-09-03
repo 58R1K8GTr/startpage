@@ -13,9 +13,14 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
 </head>
@@ -50,7 +55,8 @@
       <p><span id="username">user</span>@<span id="browser-info">browser</span><span>$</span></p>
       <div class="terminal-input-wrapper">
         <div class="command-hint" id="command-hint"></div>
-        <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" aria-label="Terminal Input" autofocus />
+        <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" autocorrect="off"
+          autocapitalize="off" aria-label="Terminal Input" autofocus />
       </div>
       <div class="ai-route-badge" id="ai-route-badge" aria-live="polite"></div>
     </section>
@@ -71,7 +77,9 @@
       </div>
 
       <div class="config-section">
-        <button class="btn-save btn-edit-bookmarks" id="btn-tags-from-config" style="background: var(--terminal-bg); color: var(--text-color); border: 1px solid var(--card-border);">Search Overrides &amp; Custom Tags</button>
+        <button class="btn-save btn-edit-bookmarks" id="btn-tags-from-config"
+          style="background: var(--terminal-bg); color: var(--text-color); border: 1px solid var(--card-border);">Search
+          Overrides &amp; Custom Tags</button>
       </div>
 
       <div class="config-section">
@@ -131,7 +139,8 @@
           <option value="ddg">DuckDuckGo</option>
           <option value="bing">Bing</option>
         </select>
-        <p class="config-hint">Used when no prefix is typed (e.g. plain text or <span class="config-code">ai:</span> fallback). Also the default engine for <span class="config-code">dir:</span> searches.</p>
+        <p class="config-hint">Used when no prefix is typed (e.g. plain text or <span class="config-code">ai:</span>
+          fallback). Also the default engine for <span class="config-code">dir:</span> searches.</p>
       </div>
 
       <div class="config-buttons">
@@ -184,7 +193,8 @@
           <div class="help-cmd"><span>:coffee</span> → Organic Coffee</div>
           <div class="help-cmd"><span>:root</span> / <span>:hacker</span> → Hacker terminal</div>
           <div class="help-cmd"><span>:neon</span> / <span>:cyberpunk</span> → Cyberpunk Neon</div>
-          <div class="help-cmd"><span>:matugen</span> / <span>:material</span> → Dynamic Matugen (~/.cache/matugen)</div>
+          <div class="help-cmd"><span>:matugen</span> / <span>:material</span> → Dynamic Matugen
+            (~/.cache/wal/colors.json)</div>
         </div>
       </div>
 
@@ -205,7 +215,8 @@
           <div class="help-cmd"><span>syn:words</span> → Synonyms (OneLook)</div>
           <div class="help-cmd"><span>quote:phrase</span> → Find quotes (OneLook)</div>
           <div class="help-cmd"><span>spell:word</span> → Check spelling · <span>D</span> to define selected word</div>
-          <div class="help-cmd"><span>pronounce:word</span> → Pronunciation + audio · <span>Space</span> to play · <span>D</span> to define</div>
+          <div class="help-cmd"><span>pronounce:word</span> → Pronunciation + audio · <span>Space</span> to play ·
+            <span>D</span> to define</div>
           <div class="help-cmd"><span>cws:name</span> → Search browser extensions</div>
         </div>
       </div>
@@ -220,9 +231,13 @@
           <div class="help-cmd"><span>dir/software: keyword</span> → Filter for executables &amp; archives</div>
           <div class="help-cmd"><span>dir/images: keyword</span> → Filter for image files</div>
           <div class="help-cmd"><span>dir/other: keyword</span> → Raw open dir, no file filter</div>
-          <div class="help-cmd" style="margin-top:6px;"><span>dir/cat/ggl:</span> <span>dir/cat/ddg:</span> <span>dir/cat/bing:</span> → Override search engine</div>
-          <div class="help-cmd" style="margin-top:4px; opacity:0.7;">Aliases: <span>vid</span> <span>video</span> · <span>book</span> <span>ebook</span> · <span>audio</span> <span>mus</span> · <span>soft</span> <span>iso</span> <span>app</span> · <span>img</span> <span>pics</span></div>
-          <div class="help-cmd" style="opacity:0.7;">Tab autocomplete works after <span>dir/</span> for categories and engines.</div>
+          <div class="help-cmd" style="margin-top:6px;"><span>dir/cat/ggl:</span> <span>dir/cat/ddg:</span>
+            <span>dir/cat/bing:</span> → Override search engine</div>
+          <div class="help-cmd" style="margin-top:4px; opacity:0.7;">Aliases: <span>vid</span> <span>video</span> ·
+            <span>book</span> <span>ebook</span> · <span>audio</span> <span>mus</span> · <span>soft</span>
+            <span>iso</span> <span>app</span> · <span>img</span> <span>pics</span></div>
+          <div class="help-cmd" style="opacity:0.7;">Tab autocomplete works after <span>dir/</span> for categories and
+            engines.</div>
         </div>
       </div>
 
@@ -245,7 +260,8 @@
           <div class="help-cmd"><span>Tab</span> / <span>→</span> → accept autocomplete suggestion</div>
           <div class="help-cmd"><span>↑ ↓</span> → navigate command history</div>
           <div class="help-cmd"><span>Ctrl+Enter</span> / <span>Alt+Enter</span> → open bookmark in background tab</div>
-          <div class="help-cmd"><span>Ctrl+Shift+Enter</span> / <span>Alt+Shift+Enter</span> → open bookmark in focused tab</div>
+          <div class="help-cmd"><span>Ctrl+Shift+Enter</span> / <span>Alt+Shift+Enter</span> → open bookmark in focused
+            tab</div>
         </div>
       </div>
 
@@ -430,13 +446,16 @@
 
       <div class="config-section">
         <div class="customize-section-title">Syntax Highlight Colors</div>
-        <p class="config-hint" style="margin-bottom:10px;">These colors are universal — they apply across all themes and persist independently.</p>
+        <p class="config-hint" style="margin-bottom:10px;">These colors are universal — they apply across all themes and
+          persist independently.</p>
         <div class="customize-grid" id="customize-color-grid"></div>
       </div>
 
       <div class="config-buttons">
         <button class="btn-cancel" id="btn-reset-colors" style="margin-right:auto;">Reset colors</button>
-        <button class="btn-cancel" id="btn-edit-prompts" style="border-color: color-mix(in srgb, var(--syn-cmd) 40%, var(--card-border)); color: var(--syn-cmd);">✎ Edit Prompts</button>
+        <button class="btn-cancel" id="btn-edit-prompts"
+          style="border-color: color-mix(in srgb, var(--syn-cmd) 40%, var(--card-border)); color: var(--syn-cmd);">✎
+          Edit Prompts</button>
         <button class="btn-cancel" id="btn-cancel-customize">Cancel</button>
         <button class="btn-save" id="btn-save-customize">Save</button>
       </div>
@@ -450,19 +469,22 @@
 
       <div class="config-section">
         <div class="customize-section-title">Search Overrides</div>
-        <p class="config-hint" style="margin-bottom: 12px;">Replace the default URL for built-in prefixes. Leave blank to use the default.</p>
+        <p class="config-hint" style="margin-bottom: 12px;">Replace the default URL for built-in prefixes. Leave blank
+          to use the default.</p>
         <div id="tags-overrides-grid" class="tags-overrides-grid"></div>
       </div>
 
       <div class="config-section">
         <div class="customize-section-title">Custom Tags</div>
-        <p class="config-hint" style="margin-bottom: 12px;">Define your own <span class="config-code">prefix:</span> shortcuts. The search query is appended to the URL.</p>
+        <p class="config-hint" style="margin-bottom: 12px;">Define your own <span class="config-code">prefix:</span>
+          shortcuts. The search query is appended to the URL.</p>
         <div id="tags-custom-list" class="tags-custom-list"></div>
         <button class="tags-add-btn" id="btn-add-tag">+ Add tag</button>
       </div>
 
       <div class="config-buttons">
-        <button class="btn-cancel tags-dir-btn" id="btn-dir-extensions" title="Customize Open Directory file extensions">⊞ Dir Extensions</button>
+        <button class="btn-cancel tags-dir-btn" id="btn-dir-extensions"
+          title="Customize Open Directory file extensions">⊞ Dir Extensions</button>
         <button class="btn-cancel" id="btn-cancel-tags">Cancel</button>
         <button class="btn-save" id="btn-save-tags">Save</button>
       </div>
@@ -474,14 +496,17 @@
     <div class="config-content dir-content">
       <h2 id="dir-modal-title">Open Directory Search</h2>
       <p class="config-hint" style="margin-bottom: 16px;">
-        Search for public open directory indexes using Google dorking. Uses <span class="config-code">intitle:index.of</span> with file-type filters.
-        Inspired by <a href="https://ewasion.github.io/opendirectory-finder/" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color, var(--syn-cmd));">ewasion's opendirectory-finder</a>.
+        Search for public open directory indexes using Google dorking. Uses <span
+          class="config-code">intitle:index.of</span> with file-type filters.
+        Inspired by <a href="https://ewasion.github.io/opendirectory-finder/" target="_blank" rel="noopener noreferrer"
+          style="color: var(--accent-color, var(--syn-cmd));">ewasion's opendirectory-finder</a>.
       </p>
 
       <!-- Keyword -->
       <div class="config-section">
         <h3>Keyword</h3>
-        <input type="text" id="dir-keyword-input" spellcheck="false" autocorrect="off" placeholder="e.g. dune, pink floyd, photoshop..." />
+        <input type="text" id="dir-keyword-input" spellcheck="false" autocorrect="off"
+          placeholder="e.g. dune, pink floyd, photoshop..." />
       </div>
 
       <!-- Category -->
@@ -492,7 +517,8 @@
           <button class="dir-cat-btn" data-cat="media">Media <span class="dir-cat-hint">mkv mp4 avi</span></button>
           <button class="dir-cat-btn" data-cat="books">Books <span class="dir-cat-hint">pdf epub mobi</span></button>
           <button class="dir-cat-btn" data-cat="music">Music <span class="dir-cat-hint">mp3 flac ogg</span></button>
-          <button class="dir-cat-btn" data-cat="software">Software <span class="dir-cat-hint">exe iso zip apk</span></button>
+          <button class="dir-cat-btn" data-cat="software">Software <span class="dir-cat-hint">exe iso zip
+              apk</span></button>
           <button class="dir-cat-btn" data-cat="images">Images <span class="dir-cat-hint">jpg png psd</span></button>
           <button class="dir-cat-btn" data-cat="other">Other <span class="dir-cat-hint">no filter</span></button>
         </div>
@@ -500,7 +526,8 @@
 
       <!-- Engine -->
       <div class="config-section">
-        <h3>Search Engine <span class="config-hint" style="font-weight:normal; font-size:0.85em;">(optional override)</span></h3>
+        <h3>Search Engine <span class="config-hint" style="font-weight:normal; font-size:0.85em;">(optional
+            override)</span></h3>
         <div class="dir-engine-grid" id="dir-engine-grid">
           <button class="dir-engine-btn active-engine" data-engine="">Default (Google)</button>
           <button class="dir-engine-btn" data-engine="ggl">Google</button>
@@ -529,13 +556,10 @@
     <div class="config-content prompts-content">
       <h2 id="prompts-modal-title">Terminal Prompts</h2>
       <p class="config-hint" style="margin-bottom: 14px;">
-        Customize the placeholder suggestions that cycle in the terminal input. One suggestion per line. Saving an empty list resets to defaults.
+        Customize the placeholder suggestions that cycle in the terminal input. One suggestion per line. Saving an empty
+        list resets to defaults.
       </p>
-      <textarea
-        id="prompts-textarea"
-        class="prompts-textarea"
-        spellcheck="false"
-        autocorrect="off"
+      <textarea id="prompts-textarea" class="prompts-textarea" spellcheck="false" autocorrect="off"
         placeholder="search anything...&#10;:help → commands&#10;yt:query → youtube"></textarea>
       <div class="config-buttons">
         <button class="btn-cancel" id="btn-reset-prompts" style="margin-right:auto;">Reset to defaults</button>
@@ -551,7 +575,8 @@
       <h2 id="dirconfig-modal-title">Open Dir — File Extensions</h2>
       <p class="config-hint" style="margin-bottom: 16px;">
         Customize which file extensions each <span class="config-code">dir/category:</span> filter searches for.
-        Click <span class="config-code">×</span> to remove, type + Enter to add. Use <span class="config-code">↺</span> to reset a category to defaults.
+        Click <span class="config-code">×</span> to remove, type + Enter to add. Use <span class="config-code">↺</span>
+        to reset a category to defaults.
       </p>
       <div id="dirconfig-categories" class="dirconfig-categories"></div>
       <div class="config-buttons">
@@ -578,7 +603,8 @@
   <div class="config-modal" id="history-modal" lang="en" role="dialog" aria-labelledby="history-modal-title">
     <div class="config-content history-content">
       <h2 id="history-modal-title">Command History</h2>
-      <p class="config-hint" style="margin-bottom: 12px;">Click or press Enter on an entry to fill the terminal. Use ↑ ↓ to navigate, PgUp / PgDn to scroll fast.</p>
+      <p class="config-hint" style="margin-bottom: 12px;">Click or press Enter on an entry to fill the terminal. Use ↑ ↓
+        to navigate, PgUp / PgDn to scroll fast.</p>
       <div id="history-list" class="history-list"></div>
       <div class="config-buttons">
         <button class="btn-cancel" style="margin-right:auto;" id="btn-clear-history">Clear history</button>
