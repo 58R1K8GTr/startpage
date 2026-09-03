@@ -1,61 +1,285 @@
 // ========================================
-// Matugen Dynamic Theme Integration (~/.cache/matugen)
+// Matugen & Pywal/Pywalfox Theme Integration (~/.cache/wal/colors.json)
 // ========================================
 
 (function () {
-  let matugenPollInterval = null;
-  let matugenLoaded = false;
-  let hasShownToastError = false;
+  let matugenWatchInterval = null;
+  let lastAppliedContent = '';
+  let activeFileHandle = null;
 
   const MATUGEN_CANDIDATES = [
-    '../../.cache/matugen/colors.css',
+    './colors.json',
+    './colors.css',
+    './wal.json',
+    './wal.css',
+    './matugen.json',
+    './matugen.css',
+    '../../.cache/wal/colors.json',
+    '../../.cache/wal/colors.css',
     '../../.cache/matugen/colors.json',
-    '../../.cache/matugen/theme.css',
-    '../../.cache/matugen/matugen.css',
-    '../../.cache/matugen/matugen.json',
-    '/.cache/matugen/colors.css',
+    '../../.cache/matugen/colors.css',
+    '/.cache/wal/colors.json',
+    '/.cache/wal/colors.css',
     '/.cache/matugen/colors.json',
-    '/.cache/matugen/theme.css',
-    '/.cache/matugen/matugen.css',
-    '~/.cache/matugen/colors.css',
-    '~/.cache/matugen/colors.json',
-    '~/.cache/matugen/theme.css',
+    '/.cache/matugen/colors.css',
   ];
 
+  // ---- IndexedDB Helper for FileSystemFileHandle ----
+  const DB_NAME = 'StartpageMatugenDB';
+  const STORE_NAME = 'handles';
+
+  function _openHandleDB() {
+    return new Promise((resolve, reject) => {
+      if (!window.indexedDB) return resolve(null);
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore(STORE_NAME);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  async function _saveFileHandle(handle) {
+    try {
+      const db = await _openHandleDB();
+      if (!db) return;
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(handle, 'colorsHandle');
+    } catch (e) {
+      console.warn('Could not store FileHandle in IndexedDB:', e);
+    }
+  }
+
+  async function _getFileHandle() {
+    try {
+      const db = await _openHandleDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).get('colorsHandle');
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ---- Refresh Mode Helper (auto 2s vs manual) ----
+  function getStoredRefreshMode() {
+    return localStorage.getItem('matugenRefreshMode') || 'auto';
+  }
+
+  function setRefreshMode(mode) {
+    localStorage.setItem('matugenRefreshMode', mode);
+    if (mode === 'manual') {
+      _stopLiveWatcher();
+      if (typeof showToast === 'function') {
+        showToast('Modo de atualização definido para MANUAL (toda vez que selecionar o arquivo).', 'info', 4000);
+      }
+    } else {
+      _startLiveWatcher();
+      if (typeof showToast === 'function') {
+        showToast('Modo de atualização definido para AUTOMÁTICO (a cada 2s).', 'info', 4000);
+      }
+    }
+    _updateModeUI();
+  }
+
   /**
-   * Load Matugen theme from ~/.cache/matugen
-   * @param {boolean} userAction - whether triggered explicitly by user command/click
+   * Ask user preference between Auto (2s) and Manual updates
+   */
+  async function askRefreshModePreference() {
+    if (typeof showConfirm === 'function') {
+      const isAuto = await showConfirm(
+        'Como você prefere atualizar as cores do tema?\n\n' +
+        '⚡ Automático: A startpage lê o arquivo de 2 em 2 segundos e atualiza sozinha quando o wallpaper muda.\n\n' +
+        '🖐️ Manual: O tema só atualiza quando você clicar para selecionar o arquivo.',
+        {
+          title: 'Modo de Atualização de Cores',
+          confirmLabel: '⚡ Automático (2 em 2s)',
+          cancelLabel: '🖐️ Manual (ao selecionar)'
+        }
+      );
+      const mode = isAuto ? 'auto' : 'manual';
+      setRefreshMode(mode);
+      return mode;
+    }
+    return getStoredRefreshMode();
+  }
+
+  /**
+   * Main entry point to load Matugen/Pywal theme
+   * @param {boolean} userAction
    */
   async function loadMatugenTheme(userAction = false) {
-    const success = await _tryFetchMatugenFiles();
+    // 1. Try reading stored handle from IndexedDB (Chromium File System Access API)
+    if (!activeFileHandle) {
+      activeFileHandle = await _getFileHandle();
+    }
 
-    if (success) {
-      matugenLoaded = true;
-      hasShownToastError = false;
+    if (activeFileHandle) {
+      const success = await _readAndApplyHandle(activeFileHandle, userAction);
+      if (success) {
+        hideMatugenErrorBanner();
+        _startLiveWatcher();
+        return;
+      }
+    }
+
+    // 2. Try stored raw content in localStorage
+    const savedColors = localStorage.getItem('matugenCustomColors');
+    if (savedColors) {
+      _applyMatugenContent(savedColors);
       hideMatugenErrorBanner();
+      _startLiveWatcher();
       if (userAction && typeof showToast === 'function') {
-        showToast('Tema do Matugen carregado com sucesso!', 'success', 3000);
+        showToast('Tema do Matugen/Pywal aplicado a partir do arquivo salvo!', 'success', 3000);
       }
-      _stopMatugenPolling();
+      return;
+    }
+
+    // 3. Try Pywalfox injected CSS variables
+    if (_tryDetectPywalfoxVars()) {
+      hideMatugenErrorBanner();
+      _startLiveWatcher();
+      if (userAction && typeof showToast === 'function') {
+        showToast('Cores do Pywalfox detectadas e aplicadas!', 'success', 3000);
+      }
+      return;
+    }
+
+    // 4. Try fetching candidate relative files (e.g., ./colors.json)
+    const fetched = await _tryFetchMatugenFiles();
+    if (fetched) {
+      hideMatugenErrorBanner();
+      _startLiveWatcher();
+      if (userAction && typeof showToast === 'function') {
+        showToast('Tema do Matugen/Pywal carregado com sucesso!', 'success', 3000);
+      }
     } else {
-      matugenLoaded = false;
       showMatugenErrorBanner();
-
-      if ((userAction || !hasShownToastError) && typeof showToast === 'function') {
+      _startLiveWatcher();
+      if (userAction && typeof showToast === 'function') {
         showToast(
-          'Matugen não encontrado em ~/.cache/matugen. Execute "matugen" para gerar os temas.',
+          'Selecione ~/.cache/wal/colors.json ou crie o link simbólico ./colors.json!',
           'error',
-          5000
+          6000
         );
-        hasShownToastError = true;
       }
-
-      _startMatugenPolling();
     }
   }
 
   /**
-   * Try candidate paths to fetch matugen output
+   * Read handle and apply if changed
+   */
+  async function _readAndApplyHandle(handle, showToastOnSuccess = false) {
+    try {
+      if (typeof handle.queryPermission === 'function') {
+        const perm = await handle.queryPermission({ mode: 'read' });
+        if (perm !== 'granted') {
+          const req = await handle.requestPermission({ mode: 'read' });
+          if (req !== 'granted') return false;
+        }
+      }
+
+      const file = await handle.getFile();
+      const text = await file.text();
+
+      if (text && text.trim().length > 0) {
+        if (text !== lastAppliedContent) {
+          lastAppliedContent = text;
+          localStorage.setItem('matugenCustomColors', text);
+          _applyMatugenContent(text);
+          if (showToastOnSuccess && typeof showToast === 'function') {
+            showToast(`Cores aplicadas de "${file.name}"!`, 'success', 3000);
+          }
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn('Error reading file handle:', e);
+    }
+    return false;
+  }
+
+  /**
+   * Start live watching (every 2 seconds) if mode === 'auto'
+   */
+  function _startLiveWatcher() {
+    if (getStoredRefreshMode() === 'manual') {
+      _stopLiveWatcher();
+      return;
+    }
+
+    if (matugenWatchInterval) return;
+
+    matugenWatchInterval = setInterval(async () => {
+      const activeTheme = (typeof getStoredTheme === 'function') ? getStoredTheme() : localStorage.getItem('theme');
+      if (activeTheme !== 'matugen' || getStoredRefreshMode() === 'manual') {
+        _stopLiveWatcher();
+        return;
+      }
+
+      // Check IndexedDB FileHandle if available
+      if (activeFileHandle) {
+        const ok = await _readAndApplyHandle(activeFileHandle, false);
+        if (ok) {
+          hideMatugenErrorBanner();
+          return;
+        }
+      }
+
+      // Check Pywalfox injected variables
+      if (_tryDetectPywalfoxVars()) {
+        hideMatugenErrorBanner();
+        return;
+      }
+
+      // Check candidate relative files (e.g. ./colors.json symlink)
+      const fetched = await _tryFetchMatugenFiles();
+      if (fetched) {
+        hideMatugenErrorBanner();
+      }
+    }, 2000);
+  }
+
+  function _stopLiveWatcher() {
+    if (matugenWatchInterval) {
+      clearInterval(matugenWatchInterval);
+      matugenWatchInterval = null;
+    }
+  }
+
+  /**
+   * Detect Pywalfox CSS variables injected into document root
+   */
+  function _tryDetectPywalfoxVars() {
+    const computed = getComputedStyle(document.documentElement);
+    const pywalBg = computed.getPropertyValue('--pywal-bg') || computed.getPropertyValue('--pywal-background') || computed.getPropertyValue('--color0');
+    const pywalFg = computed.getPropertyValue('--pywal-fg') || computed.getPropertyValue('--pywal-foreground') || computed.getPropertyValue('--color7');
+    const pywalPrimary = computed.getPropertyValue('--pywal-color1') || computed.getPropertyValue('--pywal-color2') || computed.getPropertyValue('--color1');
+
+    if (pywalBg && pywalFg && pywalBg.trim() !== '') {
+      const key = `${pywalBg.trim()}_${pywalFg.trim()}_${(pywalPrimary || '').trim()}`;
+      if (key !== lastAppliedContent) {
+        lastAppliedContent = key;
+        _applyMatugenColors({
+          background: pywalBg.trim(),
+          on_background: pywalFg.trim(),
+          surface: pywalBg.trim(),
+          on_surface: pywalFg.trim(),
+          primary: (pywalPrimary || pywalFg).trim(),
+        });
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Try candidate paths to fetch matugen/pywal output
    */
   async function _tryFetchMatugenFiles() {
     const timestamp = Date.now();
@@ -68,7 +292,10 @@
         if (response.ok) {
           const text = await response.text();
           if (text && text.trim().length > 0) {
-            _applyMatugenContent(text, path);
+            if (text !== lastAppliedContent) {
+              lastAppliedContent = text;
+              _applyMatugenContent(text);
+            }
             return true;
           }
         }
@@ -80,9 +307,59 @@
   }
 
   /**
-   * Apply fetched Matugen CSS or JSON
+   * Apply raw content string (JSON or CSS)
    */
-  function _applyMatugenContent(content, filePath) {
+  function _applyMatugenContent(content) {
+    if (content.trim().startsWith('{')) {
+      try {
+        const json = JSON.parse(content);
+        const colorMap = {};
+
+        // Pywal format parsing: special & colors
+        if (json.special) {
+          if (json.special.background) colorMap.background = json.special.background;
+          if (json.special.foreground) colorMap.on_background = json.special.foreground;
+        }
+
+        if (json.colors) {
+          if (json.colors.color0) colorMap.background = colorMap.background || json.colors.color0;
+          if (json.colors.color7) colorMap.on_background = colorMap.on_background || json.colors.color7;
+          if (json.colors.color1) colorMap.primary = json.colors.color1;
+          if (json.colors.color2) colorMap.secondary = json.colors.color2;
+          if (json.colors.color3) colorMap.tertiary = json.colors.color3;
+          Object.assign(colorMap, json.colors);
+        }
+
+        // Matugen format parsing: colors or top-level keys
+        if (json.colors && typeof json.colors === 'object') {
+          Object.assign(colorMap, json.colors);
+        }
+
+        for (const [k, v] of Object.entries(json)) {
+          if (typeof v === 'string') colorMap[k] = v;
+        }
+
+        _applyMatugenColors(colorMap);
+        return;
+      } catch (e) {
+        console.error('Failed to parse Matugen/Pywal JSON:', e);
+      }
+    }
+
+    // Treat as raw CSS
+    let styleEl = document.getElementById('matugen-dynamic-style');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'matugen-dynamic-style';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = content;
+  }
+
+  /**
+   * Map color object to CSS style rules
+   */
+  function _applyMatugenColors(colors) {
     let styleEl = document.getElementById('matugen-dynamic-style');
     if (!styleEl) {
       styleEl = document.createElement('style');
@@ -90,52 +367,159 @@
       document.head.appendChild(styleEl);
     }
 
-    if (filePath.endsWith('.json') || content.trim().startsWith('{')) {
-      try {
-        const json = JSON.parse(content);
-        const colors = json.colors || json;
-        let cssRules = 'html.matugen-mode body {\n';
+    let cssRules = 'html.matugen-mode body {\n';
 
-        for (const [key, val] of Object.entries(colors)) {
-          const cssVar = key.startsWith('--') ? key : `--${key.replace(/_/g, '-')}`;
-          cssRules += `  ${cssVar}: ${val};\n`;
-        }
-
-        // Add explicit mapping for startpage variables
-        if (colors.background || colors.surface) {
-          cssRules += `  --background-color: ${colors.background || colors.surface};\n`;
-        }
-        if (colors.on_background || colors.on_surface) {
-          cssRules += `  --text-color: ${colors.on_background || colors.on_surface};\n`;
-        }
-        if (colors.primary) {
-          cssRules += `  --color-primary: ${colors.primary};\n`;
-          cssRules += `  --syn-cmd: ${colors.primary};\n`;
-        }
-        if (colors.surface_container || colors.surface) {
-          cssRules += `  --card-background: ${colors.surface_container || colors.surface};\n`;
-          cssRules += `  --terminal-bg: ${colors.surface_container || colors.surface};\n`;
-        }
-
-        cssRules += '}\n';
-        styleEl.textContent = cssRules;
-        return;
-      } catch (e) {
-        console.error('Failed to parse Matugen JSON:', e);
+    for (const [key, val] of Object.entries(colors)) {
+      if (typeof val === 'string' && val.trim()) {
+        const cssVar = key.startsWith('--') ? key : `--${key.replace(/_/g, '-')}`;
+        cssRules += `  ${cssVar}: ${val.trim()};\n`;
       }
     }
 
-    // Treat as CSS
-    styleEl.textContent = content;
+    const bg = colors.background || colors.surface || colors.color0;
+    const fg = colors.on_background || colors.on_surface || colors.foreground || colors.color7;
+    const pri = colors.primary || colors.color1 || colors.color2 || colors.color4 || fg;
+    const cardBg = colors.surface_container || colors.color0 || bg;
+    const border = colors.color8 || colors.color1 || 'rgba(255, 255, 255, 0.15)';
+
+    if (bg) {
+      cssRules += `  --background-color: ${bg};\n`;
+      cssRules += `  --terminal-bg: ${bg};\n`;
+    }
+    if (fg) {
+      cssRules += `  --text-color: ${fg};\n`;
+      cssRules += `  --terminal-text: ${fg};\n`;
+    }
+    if (pri) {
+      cssRules += `  --color-primary: ${pri};\n`;
+      cssRules += `  --syn-cmd: ${pri};\n`;
+    }
+    if (cardBg) {
+      cssRules += `  --card-background: ${cardBg};\n`;
+    }
+    if (border) {
+      cssRules += `  --card-border: ${border};\n`;
+    }
+
+    cssRules += '}\n';
+    styleEl.textContent = cssRules;
   }
 
   /**
-   * Remove Matugen dynamic style and stop polling
+   * Prompt user to select Matugen/Pywal file (~/.cache/wal/colors.json)
+   */
+  async function promptMatugenFileSelection() {
+    // If refresh mode has never been set, ask user preference first
+    if (!localStorage.getItem('matugenRefreshMode')) {
+      await askRefreshModePreference();
+    }
+
+    // Try modern File System Access API
+    if (window.showOpenFilePicker) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{
+            description: 'Pywal/Matugen Colors File (colors.json)',
+            accept: {
+              'application/json': ['.json'],
+              'text/css': ['.css'],
+              'text/plain': ['.txt']
+            }
+          }]
+        });
+
+        if (handle) {
+          activeFileHandle = handle;
+          await _saveFileHandle(handle);
+          const ok = await _readAndApplyHandle(handle, true);
+          if (ok) {
+            hideMatugenErrorBanner();
+            if (getStoredRefreshMode() === 'auto') {
+              _startLiveWatcher();
+            } else {
+              _stopLiveWatcher();
+            }
+            return;
+          }
+        }
+      } catch (e) {
+        if (e.name === 'AbortError') return; // User cancelled
+        console.warn('showOpenFilePicker error/fallback:', e);
+      }
+    }
+
+    // Fallback: standard input type="file"
+    let input = document.getElementById('matugen-file-input');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'matugen-file-input';
+      input.accept = '.json,.css,.txt';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+
+      input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const content = event.target.result;
+          if (content) {
+            lastAppliedContent = content;
+            localStorage.setItem('matugenCustomColors', content);
+            _applyMatugenContent(content);
+            hideMatugenErrorBanner();
+            if (getStoredRefreshMode() === 'auto') {
+              _startLiveWatcher();
+            } else {
+              _stopLiveWatcher();
+            }
+            if (typeof showToast === 'function') {
+              showToast(`Arquivo "${file.name}" carregado e aplicado!`, 'success', 3500);
+            }
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+    input.click();
+  }
+
+  /**
+   * Update banner UI with current mode status & toggle button
+   */
+  function _updateModeUI() {
+    const banner = document.getElementById('matugen-error-banner');
+    if (!banner) return;
+
+    const modeBtn = banner.querySelector('#matugen-mode-btn');
+    const mode = getStoredRefreshMode();
+    if (modeBtn) {
+      if (mode === 'manual') {
+        modeBtn.textContent = '🖐️ Modo: Manual (Clique para mudar p/ Automático 2s)';
+      } else {
+        modeBtn.textContent = '⚡ Modo: Automático 2s (Clique para mudar p/ Manual)';
+      }
+    }
+  }
+
+  /**
+   * Clear stored custom colors
+   */
+  function clearMatugenCustomColors() {
+    localStorage.removeItem('matugenCustomColors');
+    lastAppliedContent = '';
+    activeFileHandle = null;
+    clearMatugenTheme();
+    loadMatugenTheme(true);
+  }
+
+  /**
+   * Remove Matugen dynamic style and stop watcher
    */
   function clearMatugenTheme() {
-    matugenLoaded = false;
-    hasShownToastError = false;
-    _stopMatugenPolling();
+    _stopLiveWatcher();
     hideMatugenErrorBanner();
 
     const styleEl = document.getElementById('matugen-dynamic-style');
@@ -143,38 +527,7 @@
   }
 
   /**
-   * Start periodic polling while Matugen mode is active but files are missing
-   */
-  function _startMatugenPolling() {
-    if (matugenPollInterval) return;
-    matugenPollInterval = setInterval(async () => {
-      const activeTheme = (typeof getStoredTheme === 'function') ? getStoredTheme() : localStorage.getItem('theme');
-      if (activeTheme !== 'matugen') {
-        _stopMatugenPolling();
-        return;
-      }
-
-      const success = await _tryFetchMatugenFiles();
-      if (success) {
-        matugenLoaded = true;
-        hideMatugenErrorBanner();
-        _stopMatugenPolling();
-        if (typeof showToast === 'function') {
-          showToast('Matugen detectado e tema aplicado!', 'success', 3000);
-        }
-      }
-    }, 3000);
-  }
-
-  function _stopMatugenPolling() {
-    if (matugenPollInterval) {
-      clearInterval(matugenPollInterval);
-      matugenPollInterval = null;
-    }
-  }
-
-  /**
-   * Display Matugen Error Banner until matugen is executed
+   * Display Matugen & Pywal Banner
    */
   function showMatugenErrorBanner() {
     let banner = document.getElementById('matugen-error-banner');
@@ -187,21 +540,35 @@
       banner.innerHTML = `
         <div class="matugen-error-header">
           <span class="matugen-error-icon">⚠️</span>
-          <span>Erro: Matugen não encontrado</span>
+          <span>Matugen / Pywal: Leitura do arquivo de cores</span>
         </div>
         <p class="matugen-error-text">
-          Não foi possível carregar os temas do Matugen em <code>~/.cache/matugen</code>.<br>
-          Por favor, execute o <code>matugen</code> no seu terminal para gerar os arquivos de cores.
+          O navegador impede a leitura automática de <code>~/.cache/wal/colors.json</code> por segurança.<br>
+          <strong>Escolha como deseja que a startpage atualize o tema:</strong>
         </p>
         <div class="matugen-error-actions">
-          <code class="matugen-cmd-hint">matugen image /caminho/para/imagem.jpg</code>
-          <button type="button" id="matugen-retry-btn" class="matugen-retry-btn">Tentar Novamente ↻</button>
+          <button type="button" id="matugen-file-btn" class="matugen-action-btn matugen-btn-primary">📁 Selecionar ~/.cache/wal/colors.json</button>
+          <button type="button" id="matugen-mode-btn" class="matugen-action-btn matugen-btn-secondary">⚡ Modo: Automático 2s (Clique p/ Mudar)</button>
+          <button type="button" id="matugen-retry-btn" class="matugen-action-btn matugen-btn-secondary">Tentar Novamente ↻</button>
         </div>
       `;
 
-      // Insert at top of main content container
       const container = document.querySelector('.content') || document.body;
       container.insertBefore(banner, container.firstChild);
+
+      const fileBtn = banner.querySelector('#matugen-file-btn');
+      if (fileBtn) {
+        fileBtn.addEventListener('click', promptMatugenFileSelection);
+      }
+
+      const modeBtn = banner.querySelector('#matugen-mode-btn');
+      if (modeBtn) {
+        modeBtn.addEventListener('click', async () => {
+          const current = getStoredRefreshMode();
+          const nextMode = current === 'auto' ? 'manual' : 'auto';
+          setRefreshMode(nextMode);
+        });
+      }
 
       const retryBtn = banner.querySelector('#matugen-retry-btn');
       if (retryBtn) {
@@ -213,12 +580,10 @@
         });
       }
     }
+    _updateModeUI();
     banner.style.display = 'flex';
   }
 
-  /**
-   * Hide Matugen Error Banner
-   */
   function hideMatugenErrorBanner() {
     const banner = document.getElementById('matugen-error-banner');
     if (banner) {
@@ -229,5 +594,10 @@
   // Export functions to global scope
   window.loadMatugenTheme = loadMatugenTheme;
   window.clearMatugenTheme = clearMatugenTheme;
+  window.promptMatugenFileSelection = promptMatugenFileSelection;
+  window.clearMatugenCustomColors = clearMatugenCustomColors;
+  window.askRefreshModePreference = askRefreshModePreference;
+  window.setRefreshMode = setRefreshMode;
+  window.getStoredRefreshMode = getStoredRefreshMode;
   window.retryMatugenTheme = () => loadMatugenTheme(true);
 })();

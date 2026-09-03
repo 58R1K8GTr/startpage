@@ -229,7 +229,10 @@ function updateSyntaxHighlight(rawValue) {
     ':ne': ':newspaper',
     ':co': ':coffee',
     ':ro': ':root',
-    ':neo': ':neon'
+    ':neo': ':neon',
+    ':ma': ':matugen',
+    ':mat': ':matugen',
+    ':matug': ':matugen'
   };
 
   // Inject custom tags into suggestions
@@ -241,8 +244,8 @@ function updateSyntaxHighlight(rawValue) {
   });
   const customTagPrefixes = customTags.map(t => t.prefix).filter(Boolean);
 
-  const themeCommands = [':dark', ':black', ':amoled', ':light', ':nord', ':newspaper', ':coffee', ':root', ':neon'];
-  const knownCommands = [':help', ':help_ai_router', ':aimode', ':bookmarks', ':bm', ':ipconfig', ':ip', ':netspeed', ':speed', ':config', ':customize', ':custom', ':tags', ':dir', ':dirconfig', ':prompts', ':weather', ':time', ':gemini', ':update', ':export', ':import', ':reset', ':history', ':tour', ':hacker', ':cyberpunk', ...themeCommands];
+  const themeCommands = [':dark', ':black', ':amoled', ':light', ':nord', ':newspaper', ':coffee', ':root', ':neon', ':matugen', ':material'];
+  const knownCommands = [':help', ':help_ai_router', ':aimode', ':bookmarks', ':bm', ':ipconfig', ':ip', ':netspeed', ':speed', ':config', ':customize', ':custom', ':tags', ':dir', ':dirconfig', ':prompts', ':weather', ':time', ':gemini', ':update', ':export', ':import', ':reset', ':history', ':tour', ':hacker', ':cyberpunk', ':matugen', ':material', ...themeCommands];
   const versionCommands = [':version', ':ver', ':update'];
   const knownSearch = /^(r|yt|alt|def|ddg|ggl|bing|amazon|imdb|the|syn|quote|maps|cws|spell|pronounce|gem|gemini|ai):/;
   const knownSearchDynamic = customTagPrefixes.length

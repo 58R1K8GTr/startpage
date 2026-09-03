@@ -110,6 +110,25 @@ function handleSpecialCommands(value) {
   }
 
   // ---- Theme ----
+  const matugenMatch = normalized.match(/^:(matugen|material)(\s+(manual|auto|stop|off|start|2s|disable|enable))?$/i);
+  if (matugenMatch) {
+    const subCmd = (matugenMatch[3] || '').toLowerCase();
+    if (['manual', 'stop', 'off', 'disable'].includes(subCmd)) {
+      if (typeof setRefreshMode === 'function') setRefreshMode('manual');
+      if (typeof loadMatugenTheme === 'function') loadMatugenTheme(false);
+      saveTheme('matugen');
+      clear();
+      return;
+    }
+    if (['auto', 'start', '2s', 'enable'].includes(subCmd)) {
+      if (typeof setRefreshMode === 'function') setRefreshMode('auto');
+      if (typeof loadMatugenTheme === 'function') loadMatugenTheme(true);
+      saveTheme('matugen');
+      clear();
+      return;
+    }
+  }
+
   const themeMatch = normalized.replace(/^:/, '');
   const THEME_ALIASES = { 'amoled': 'black', 'hacker': 'root', 'cyberpunk': 'neon', 'material': 'matugen' };
   const targetTheme = THEME_ALIASES[themeMatch] || themeMatch;

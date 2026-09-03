@@ -2102,15 +2102,15 @@ input.input-dir-active {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: color-mix(in srgb, #e74c3c 15%, var(--terminal-bg, #1a1a1a));
-  border: 1px solid #e74c3c;
+  background: color-mix(in srgb, #e74c3c 12%, var(--terminal-bg, #1a1a1a));
+  border: 1px solid color-mix(in srgb, #e74c3c 60%, var(--card-border));
   border-radius: var(--border-radius, 12px);
-  padding: 14px 18px;
+  padding: 16px 20px;
   margin: 16px auto;
   max-width: 680px;
   width: calc(100% - 32px);
   color: var(--text-color, #ffffff);
-  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.25);
+  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.2);
   animation: fadeIn 0.3s ease;
   z-index: 100;
   box-sizing: border-box;
@@ -2136,7 +2136,18 @@ input.input-dir-active {
   opacity: 0.95;
 }
 
+.matugen-help-list {
+  margin: 4px 0 6px 18px;
+  padding: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .matugen-error-text code,
+.matugen-help-list code,
 .matugen-cmd-hint {
   background: rgba(0, 0, 0, 0.4);
   padding: 2px 7px;
@@ -2149,15 +2160,39 @@ input.input-dir-active {
 .matugen-error-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 10px;
+  margin-top: 6px;
   flex-wrap: wrap;
 }
 
-.matugen-retry-btn {
-  background: #e74c3c;
+.matugen-action-btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.matugen-btn-primary {
+  background: var(--syn-cmd, #667eea);
   color: #ffffff;
+}
+
+.matugen-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #ffffff);
+  border: 1px solid var(--card-border);
+}
+
+.matugen-action-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
   border: none;
   padding: 6px 14px;
   border-radius: 6px;
