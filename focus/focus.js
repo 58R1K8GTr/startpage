@@ -9,9 +9,10 @@
       newspaper: '#f4efdf',
       coffee:    '#2b1b17',
       root:      '#050505',
-      neon:      '#0d0d0d'
+      neon:      '#0d0d0d',
+      matugen:   '#111318'
     };
-    const darkThemes = new Set(['dark', 'black', 'nord', 'coffee', 'root', 'neon']);
+    const darkThemes = new Set(['dark', 'black', 'nord', 'coffee', 'root', 'neon', 'matugen']);
 
     document.documentElement.style.backgroundColor = backgroundByTheme[theme] || '#ffffff';
     document.documentElement.style.colorScheme = darkThemes.has(theme) ? 'dark' : 'light';

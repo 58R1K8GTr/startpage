@@ -111,7 +111,7 @@ function handleSpecialCommands(value) {
 
   // ---- Theme ----
   const themeMatch = normalized.replace(/^:/, '');
-  const THEME_ALIASES = { 'amoled': 'black', 'hacker': 'root', 'cyberpunk': 'neon' };
+  const THEME_ALIASES = { 'amoled': 'black', 'hacker': 'root', 'cyberpunk': 'neon', 'material': 'matugen' };
   const targetTheme = THEME_ALIASES[themeMatch] || themeMatch;
 
   if (THEMES.includes(targetTheme) || targetTheme === 'light') {
@@ -121,6 +121,11 @@ function handleSpecialCommands(value) {
     });
     if (targetTheme !== 'light') {
       document.documentElement.classList.add(`${targetTheme}-mode`);
+    }
+    if (targetTheme === 'matugen') {
+      if (typeof loadMatugenTheme === 'function') loadMatugenTheme(true);
+    } else {
+      if (typeof clearMatugenTheme === 'function') clearMatugenTheme();
     }
     saveTheme(targetTheme);
     clear();

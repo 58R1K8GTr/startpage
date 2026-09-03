@@ -12,6 +12,11 @@ function loadTheme() {
     document.body.classList.add(`${theme}-mode`);
     document.documentElement.classList.add(`${theme}-mode`);
   }
+  if (theme === 'matugen') {
+    if (typeof loadMatugenTheme === 'function') loadMatugenTheme(false);
+  } else {
+    if (typeof clearMatugenTheme === 'function') clearMatugenTheme();
+  }
 }
 
 // ---- Placeholders Init ----

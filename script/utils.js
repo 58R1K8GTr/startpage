@@ -5,7 +5,7 @@
 const HANDLED_INTERNALLY = Symbol('handled');
 
 const THEMES = [
-    'light', 'dark', 'black', 'nord', 'newspaper', 'coffee', 'root', 'neon'
+    'light', 'dark', 'black', 'nord', 'newspaper', 'coffee', 'root', 'neon', 'matugen'
 ];
 
 /**

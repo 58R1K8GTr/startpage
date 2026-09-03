@@ -185,6 +185,25 @@ html.neon-mode body {
   background: radial-gradient(circle at center, #1a1a1a 0%, #0d0d0d 100%);
 }
 
+/* Matugen (Material You Dynamic) Theme */
+html.matugen-mode body {
+  --background-color: var(--background, var(--surface, var(--md_sys_color_background, #111318)));
+  --text-color: var(--on_background, var(--on_surface, var(--md_sys_color_on_background, #e2e2e9)));
+  --card-background: var(--surface_container, var(--surface, var(--md_sys_color_surface_container, rgba(35, 38, 44, 0.6))));
+  --card-border: var(--outline, var(--md_sys_color_outline, rgba(140, 145, 153, 0.3)));
+  --terminal-bg: var(--surface_container_high, var(--surface_container, var(--md_sys_color_surface, rgba(20, 22, 27, 0.85))));
+  --terminal-text: var(--on_surface, var(--on_background, var(--md_sys_color_on_surface, #e2e2e9)));
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --color-primary: var(--primary, var(--md_sys_color_primary, #a0cafd));
+  --link-background: var(--surface_container_low, rgba(255, 255, 255, 0.05));
+  --link-hover: var(--surface_container_highest, rgba(255, 255, 255, 0.1));
+
+  --syn-cmd: var(--primary, var(--md_sys_color_primary, #a0cafd));
+  --syn-theme: var(--secondary, var(--tertiary, var(--md_sys_color_secondary, #bcc7db)));
+  --syn-search: var(--tertiary, var(--primary, var(--md_sys_color_tertiary, #e0bfa8)));
+  --syn-version: var(--primary, var(--md_sys_color_primary, #a0cafd));
+}
+
 html.newspaper-mode body {
   letter-spacing: -0.01em;
 }
@@ -1487,7 +1506,7 @@ ul li a span {
   color-scheme: dark;
 }
 
-html:not(.dark-mode):not(.black-mode):not(.nord-mode):not(.coffee-mode):not(.root-mode):not(.neon-mode) .customize-swatch {
+html:not(.dark-mode):not(.black-mode):not(.nord-mode):not(.coffee-mode):not(.root-mode):not(.neon-mode):not(.matugen-mode) .customize-swatch {
   color-scheme: light;
 }
 
@@ -2077,6 +2096,82 @@ input.input-dir-active {
 
 .sp-toast-info .sp-toast-icon { color: var(--syn-cmd); }
 .sp-toast-info { border-color: color-mix(in srgb, var(--syn-cmd) 40%, var(--card-border)); }
+
+/* ---- Matugen Error Banner ---- */
+.matugen-error-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: color-mix(in srgb, #e74c3c 15%, var(--terminal-bg, #1a1a1a));
+  border: 1px solid #e74c3c;
+  border-radius: var(--border-radius, 12px);
+  padding: 14px 18px;
+  margin: 16px auto;
+  max-width: 680px;
+  width: calc(100% - 32px);
+  color: var(--text-color, #ffffff);
+  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.25);
+  animation: fadeIn 0.3s ease;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.matugen-error-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #e74c3c;
+}
+
+.matugen-error-icon {
+  font-size: 16px;
+}
+
+.matugen-error-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
+.matugen-error-text code,
+.matugen-cmd-hint {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--monospace-font-family);
+  font-size: 12px;
+  color: #f39c12;
+}
+
+.matugen-error-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.matugen-retry-btn {
+  background: #e74c3c;
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.matugen-retry-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 
 /* ---- Overlay ---- */
 .sp-overlay {

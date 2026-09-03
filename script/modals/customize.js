@@ -20,6 +20,7 @@ const THEME_DEFS = [
   { value: 'coffee',    label: 'Coffee'    },
   { value: 'root',      label: 'Root'      },
   { value: 'neon',      label: 'Neon'      },
+  { value: 'matugen',   label: 'Matugen'   },
 ];
 
 // ---- Open / Close ----
@@ -135,6 +136,11 @@ function _applyTheme(theme) {
   });
   if (theme !== 'light') {
     document.documentElement.classList.add(`${theme}-mode`);
+  }
+  if (theme === 'matugen') {
+    if (typeof loadMatugenTheme === 'function') loadMatugenTheme(true);
+  } else {
+    if (typeof clearMatugenTheme === 'function') clearMatugenTheme();
   }
   saveTheme(theme);
 }
