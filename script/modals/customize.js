@@ -123,6 +123,27 @@ function _renderCustomizeModal() {
     });
     themeGrid.appendChild(btn);
   });
+
+  const matugenControls = document.getElementById('customize-matugen-controls');
+  if (matugenControls) {
+    matugenControls.style.display = (currentTheme === 'matugen') ? 'flex' : 'none';
+
+    const pickBtn = document.getElementById('btn-customize-matugen-pick');
+    if (pickBtn && !pickBtn._bound) {
+      pickBtn._bound = true;
+      pickBtn.addEventListener('click', () => {
+        if (typeof promptMatugenFileSelection === 'function') promptMatugenFileSelection();
+      });
+    }
+
+    const reloadBtn = document.getElementById('btn-customize-matugen-reload');
+    if (reloadBtn && !reloadBtn._bound) {
+      reloadBtn._bound = true;
+      reloadBtn.addEventListener('click', () => {
+        if (typeof reloadMatugenThemeFile === 'function') reloadMatugenThemeFile(true);
+      });
+    }
+  }
 }
 
 function _applyLiveColor(key, value) {
@@ -141,6 +162,10 @@ function _applyTheme(theme) {
     if (typeof loadMatugenTheme === 'function') loadMatugenTheme(true);
   } else {
     if (typeof clearMatugenTheme === 'function') clearMatugenTheme();
+  }
+  const matugenControls = document.getElementById('customize-matugen-controls');
+  if (matugenControls) {
+    matugenControls.style.display = (theme === 'matugen') ? 'flex' : 'none';
   }
   saveTheme(theme);
 }

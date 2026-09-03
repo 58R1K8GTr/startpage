@@ -2189,6 +2189,77 @@ input.input-dir-active {
   border: 1px solid var(--card-border);
 }
 
+/* ---- Matugen Always-Available Controls Bar ---- */
+.matugen-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--terminal-bg, rgba(20, 22, 27, 0.85));
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.15));
+  border-radius: var(--border-radius, 12px);
+  padding: 10px 16px;
+  margin: 12px auto;
+  max-width: 680px;
+  width: calc(100% - 32px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  z-index: 90;
+}
+
+html:not(.matugen-mode) .matugen-controls-bar {
+  display: none !important;
+}
+
+.matugen-controls-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color, #ffffff);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.matugen-controls-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.matugen-bar-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-color, #ffffff);
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.15));
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.matugen-bar-btn-primary {
+  background: var(--syn-cmd, #667eea);
+  color: #ffffff;
+  border: none;
+}
+
+.matugen-bar-btn-secondary {
+  background: var(--syn-theme, #f6ad55);
+  color: #121212;
+  border: none;
+}
+
+.matugen-bar-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 .matugen-action-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);

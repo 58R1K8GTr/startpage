@@ -76,12 +76,12 @@
     if (mode === 'manual') {
       _stopLiveWatcher();
       if (typeof showToast === 'function') {
-        showToast('Modo de atualização definido para MANUAL (toda vez que selecionar o arquivo).', 'info', 4000);
+        showToast('Modo de atualização definido para MANUAL.', 'info', 4000);
       }
     } else {
       _startLiveWatcher();
       if (typeof showToast === 'function') {
-        showToast('Modo de atualização definido para AUTOMÁTICO (a cada 2s).', 'info', 4000);
+        showToast('Modo de atualização definido para AUTOMÁTICO (2s).', 'info', 4000);
       }
     }
     _updateModeUI();
@@ -94,8 +94,8 @@
     if (typeof showConfirm === 'function') {
       const isAuto = await showConfirm(
         'Como você prefere atualizar as cores do tema?\n\n' +
-        '⚡ Automático: A startpage lê o arquivo de 2 em 2 segundos e atualiza sozinha quando o wallpaper muda.\n\n' +
-        '🖐️ Manual: O tema só atualiza quando você clicar para selecionar o arquivo.',
+        '⚡ Automático: A startpage lê o arquivo de 2 em 2 segundos e atualiza sozinha quando o wallpaper mudar.\n\n' +
+        '🖐️ Manual: O tema só atualiza quando você clicar para selecionar o arquivo ou apertar no botão de reler.',
         {
           title: 'Modo de Atualização de Cores',
           confirmLabel: '⚡ Automático (2 em 2s)',
@@ -114,6 +114,9 @@
    * @param {boolean} userAction
    */
   async function loadMatugenTheme(userAction = false) {
+    _initBarEventListeners();
+    _updateModeUI();
+
     // 1. Try reading stored handle from IndexedDB (Chromium File System Access API)
     if (!activeFileHandle) {
       activeFileHandle = await _getFileHandle();
@@ -172,6 +175,39 @@
   }
 
   /**
+   * Re-read stored file/handle without opening file picker window (Button 2)
+   */
+  async function reloadMatugenThemeFile(showToastMessage = true) {
+    if (!activeFileHandle) {
+      activeFileHandle = await _getFileHandle();
+    }
+
+    if (activeFileHandle) {
+      const success = await _readAndApplyHandle(activeFileHandle, showToastMessage);
+      if (success) {
+        if (showToastMessage && typeof showToast === 'function') {
+          showToast('Cores relidas e aplicadas com sucesso!', 'success', 2500);
+        }
+        return true;
+      }
+    }
+
+    const fetched = await _tryFetchMatugenFiles();
+    if (fetched) {
+      if (showToastMessage && typeof showToast === 'function') {
+        showToast('Cores relidas a partir do arquivo local!', 'success', 2500);
+      }
+      return true;
+    }
+
+    if (showToastMessage && typeof showToast === 'function') {
+      showToast('Nenhum arquivo armazenado. Abrindo janela de seleção...', 'info', 3000);
+    }
+    promptMatugenFileSelection();
+    return false;
+  }
+
+  /**
    * Read handle and apply if changed
    */
   async function _readAndApplyHandle(handle, showToastOnSuccess = false) {
@@ -188,7 +224,7 @@
       const text = await file.text();
 
       if (text && text.trim().length > 0) {
-        if (text !== lastAppliedContent) {
+        if (text !== lastAppliedContent || showToastOnSuccess) {
           lastAppliedContent = text;
           localStorage.setItem('matugenCustomColors', text);
           _applyMatugenContent(text);
@@ -487,19 +523,53 @@
   }
 
   /**
-   * Update banner UI with current mode status & toggle button
+   * Attach event listeners to the docked controls bar
+   */
+  function _initBarEventListeners() {
+    const pickBtn = document.getElementById('bar-matugen-pick');
+    if (pickBtn && !pickBtn._bound) {
+      pickBtn._bound = true;
+      pickBtn.addEventListener('click', promptMatugenFileSelection);
+    }
+
+    const reloadBtn = document.getElementById('bar-matugen-reload');
+    if (reloadBtn && !reloadBtn._bound) {
+      reloadBtn._bound = true;
+      reloadBtn.addEventListener('click', () => reloadMatugenThemeFile(true));
+    }
+
+    const modeBtn = document.getElementById('bar-matugen-mode');
+    if (modeBtn && !modeBtn._bound) {
+      modeBtn._bound = true;
+      modeBtn.addEventListener('click', () => {
+        const current = getStoredRefreshMode();
+        setRefreshMode(current === 'auto' ? 'manual' : 'auto');
+      });
+    }
+  }
+
+  /**
+   * Update banner UI & bar UI with current mode status
    */
   function _updateModeUI() {
-    const banner = document.getElementById('matugen-error-banner');
-    if (!banner) return;
-
-    const modeBtn = banner.querySelector('#matugen-mode-btn');
     const mode = getStoredRefreshMode();
+    const modeBtn = document.getElementById('bar-matugen-mode');
     if (modeBtn) {
       if (mode === 'manual') {
-        modeBtn.textContent = '🖐️ Modo: Manual (Clique para mudar p/ Automático 2s)';
+        modeBtn.textContent = '🖐️ Modo: Manual';
+        modeBtn.title = 'Modo Manual (sem leituras em 2s). Clique para mudar para Automático (2s).';
       } else {
-        modeBtn.textContent = '⚡ Modo: Automático 2s (Clique para mudar p/ Manual)';
+        modeBtn.textContent = '⚡ Modo: Automático (2s)';
+        modeBtn.title = 'Modo Automático (lendo de 2s em 2s). Clique para mudar para Manual.';
+      }
+    }
+
+    const bannerModeBtn = document.querySelector('#matugen-error-banner #matugen-mode-btn');
+    if (bannerModeBtn) {
+      if (mode === 'manual') {
+        bannerModeBtn.textContent = '🖐️ Modo: Manual (Clique p/ Mudar p/ Automático)';
+      } else {
+        bannerModeBtn.textContent = '⚡ Modo: Automático 2s (Clique p/ Mudar p/ Manual)';
       }
     }
   }
@@ -591,10 +661,15 @@
     }
   }
 
+  document.addEventListener('DOMContentLoaded', () => {
+    _initBarEventListeners();
+  });
+
   // Export functions to global scope
   window.loadMatugenTheme = loadMatugenTheme;
   window.clearMatugenTheme = clearMatugenTheme;
   window.promptMatugenFileSelection = promptMatugenFileSelection;
+  window.reloadMatugenThemeFile = reloadMatugenThemeFile;
   window.clearMatugenCustomColors = clearMatugenCustomColors;
   window.askRefreshModePreference = askRefreshModePreference;
   window.setRefreshMode = setRefreshMode;
